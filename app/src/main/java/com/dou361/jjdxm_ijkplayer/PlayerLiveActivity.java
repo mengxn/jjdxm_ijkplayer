@@ -4,15 +4,22 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.dou361.ijkplayer.listener.OnShowThumbnailListener;
 import com.dou361.ijkplayer.widget.PlayStateParams;
 import com.dou361.ijkplayer.widget.PlayerView;
+import com.dou361.jjdxm_ijkplayer.bean.LiveBean;
+import com.dou361.jjdxm_ijkplayer.module.ApiServiceUtils;
 import com.dou361.jjdxm_ijkplayer.utlis.MediaUtils;
+
+import java.util.List;
 
 
 /**
@@ -39,21 +46,38 @@ public class PlayerLiveActivity extends Activity {
 
     private PlayerView player;
     private Context mContext;
+    private View rootView;
+    private List<LiveBean> list;
+    private String url = "http://hdl.9158.com/live/744961b29380de63b4ff129ca6b95849.flv";
+    private String title = "标题";
     private PowerManager.WakeLock wakeLock;
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (list.size() > 1) {
+                url = list.get(1).getLiveStream();
+                title = list.get(1).getNickname();
+            }
+            player.setPlaySource(url)
+                    .startPlay();
+        }
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.mContext = this;
-        setContentView(R.layout.simple_player_view_player);
+        rootView = getLayoutInflater().from(this).inflate(R.layout.simple_player_view_player, null);
+        setContentView(rootView);
 
         /**常亮*/
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "liveTAG");
         wakeLock.acquire();
-        String url = "http://hdl.9158.com/live/744961b29380de63b4ff129ca6b95849.flv";
-        player = new PlayerView(this)
-                .setTitle("什么")
+
+        player = new PlayerView(this, rootView)
+                .setTitle(title)
                 .setScaleType(PlayStateParams.fitparent)
                 .hideMenu(true)
                 .hideSteam(true)
@@ -69,10 +93,15 @@ public class PlayerLiveActivity extends Activity {
                                 .error(R.color.cl_error)
                                 .into(ivThumbnail);
                     }
-                })
-                .setPlaySource(url)
-                .startPlay();
-
+                });
+        new Thread() {
+            @Override
+            public void run() {
+                //这里多有得罪啦，网上找的直播地址，如有不妥之处，可联系删除
+                list = ApiServiceUtils.getLiveList();
+                mHandler.sendEmptyMessage(0);
+            }
+        }.start();
 
     }
 

@@ -42,22 +42,22 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 /**
  * ========================================
- * <p/>
+ * <p>
  * 版 权：dou361.com 版权所有 （C） 2015
- * <p/>
+ * <p>
  * 作 者：陈冠明
- * <p/>
+ * <p>
  * 个人网站：http://www.dou361.com
- * <p/>
+ * <p>
  * 版 本：1.0
- * <p/>
+ * <p>
  * 创建日期：2016/4/14
- * <p/>
+ * <p>
  * 描 述：
- * <p/>
- * <p/>
+ * <p>
+ * <p>
  * 修订历史：
- * <p/>
+ * <p>
  * ========================================
  */
 public class PlayerView {
@@ -467,6 +467,7 @@ public class PlayerView {
                 query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_currentTime_full")).text(time);
                 query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_currentTime_left")).text(time);
             }
+
         }
 
         /**开始拖动*/
@@ -564,8 +565,17 @@ public class PlayerView {
      * ========================================视频的监听方法==============================================
      */
 
-
+    /**
+     * 保留旧的调用方法
+     */
     public PlayerView(Activity activity) {
+        this(activity, null);
+    }
+
+    /**
+     * 新的调用方法，适用非Activity中使用PlayerView，例如fragment、holder中使用
+     */
+    public PlayerView(Activity activity, View rootView) {
         this.mActivity = activity;
         this.mContext = activity;
         try {
@@ -575,23 +585,41 @@ public class PlayerView {
         } catch (Throwable e) {
             Log.e(TAG, "loadLibraries error", e);
         }
-        screenWidthPixels = activity.getResources().getDisplayMetrics().widthPixels;
-        audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
+        audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         mMaxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        query = new LayoutQuery(activity);
-        rl_box = activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_box"));
-        videoView = (IjkVideoView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "video_view"));
-        settingsContainer = activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_settings_container"));
-        settingsContainer.setVisibility(View.GONE);
-        volumeControllerContainer = activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_volume_controller_container"));
-        /**声音进度*/
-        volumeController = (SeekBar) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_volume_controller"));
-        volumeController.setMax(100);
-        volumeController.setOnSeekBarChangeListener(this.onVolumeControllerChangeListener);
-        /**亮度进度*/
-        brightnessControllerContainer = activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_brightness_controller_container"));
-        brightnessController = (SeekBar) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_brightness_controller"));
-        brightnessController.setMax(100);
+        if (rootView == null) {
+            query = new LayoutQuery(mActivity);
+            rl_box = mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_box"));
+            videoView = (IjkVideoView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "video_view"));
+            settingsContainer = mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_settings_container"));
+            settingsContainer.setVisibility(View.GONE);
+            volumeControllerContainer = mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_volume_controller_container"));
+            /**声音进度*/
+            volumeController = (SeekBar) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_volume_controller"));
+            volumeController.setMax(100);
+            volumeController.setOnSeekBarChangeListener(this.onVolumeControllerChangeListener);
+            /**亮度进度*/
+            brightnessControllerContainer = mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_brightness_controller_container"));
+            brightnessController = (SeekBar) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_brightness_controller"));
+            brightnessController.setMax(100);
+        } else {
+            query = new LayoutQuery(mActivity, rootView);
+            rl_box = rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_box"));
+            videoView = (IjkVideoView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "video_view"));
+            settingsContainer = rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_settings_container"));
+            settingsContainer.setVisibility(View.GONE);
+            volumeControllerContainer = rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_volume_controller_container"));
+            /**声音进度*/
+            volumeController = (SeekBar) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_volume_controller"));
+            volumeController.setMax(100);
+            volumeController.setOnSeekBarChangeListener(this.onVolumeControllerChangeListener);
+            /**亮度进度*/
+            brightnessControllerContainer = rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_brightness_controller_container"));
+            brightnessController = (SeekBar) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_brightness_controller"));
+            brightnessController.setMax(100);
+        }
+
         try {
             int e = Settings.System.getInt(this.mContext.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
             float progress = 1.0F * (float) e / 255.0F;
@@ -602,21 +630,38 @@ public class PlayerView {
             var7.printStackTrace();
         }
         brightnessController.setOnSeekBarChangeListener(this.onBrightnessControllerChangeListener);
+        if (rootView == null) {
+            streamSelectView = (LinearLayout) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_select_stream_container"));
+            streamSelectListView = (ListView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_select_streams_list"));
+            ll_topbar = mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_top_box"));
+            ll_bottombar = mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "ll_bottom_bar"));
+            iv_trumb = (ImageView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "iv_trumb"));
+            iv_back = (ImageView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_finish"));
+            iv_menu = (ImageView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_menu"));
+            iv_bar_player = (ImageView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_play"));
+            iv_player = (ImageView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "play_icon"));
+            iv_rotation = (ImageView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "ijk_iv_rotation"));
+            iv_fullscreen = (ImageView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_fullscreen"));
+            tv_steam = (TextView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_stream"));
+            tv_speed = (TextView) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_speed"));
+            seekBar = (SeekBar) mActivity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_seekBar"));
+        } else {
+            streamSelectView = (LinearLayout) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_select_stream_container"));
+            streamSelectListView = (ListView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_select_streams_list"));
+            ll_topbar = rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_top_box"));
+            ll_bottombar = rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "ll_bottom_bar"));
+            iv_trumb = (ImageView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "iv_trumb"));
+            iv_back = (ImageView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_finish"));
+            iv_menu = (ImageView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_menu"));
+            iv_bar_player = (ImageView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_play"));
+            iv_player = (ImageView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "play_icon"));
+            iv_rotation = (ImageView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "ijk_iv_rotation"));
+            iv_fullscreen = (ImageView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_fullscreen"));
+            tv_steam = (TextView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_stream"));
+            tv_speed = (TextView) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_speed"));
+            seekBar = (SeekBar) rootView.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_seekBar"));
+        }
 
-        streamSelectView = (LinearLayout) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_select_stream_container"));
-        streamSelectListView = (ListView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "simple_player_select_streams_list"));
-        ll_topbar = activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_top_box"));
-        ll_bottombar = activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "ll_bottom_bar"));
-        iv_trumb = (ImageView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "iv_trumb"));
-        iv_back = (ImageView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_finish"));
-        iv_menu = (ImageView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_menu"));
-        iv_bar_player = (ImageView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_play"));
-        iv_player = (ImageView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "play_icon"));
-        iv_rotation = (ImageView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "ijk_iv_rotation"));
-        iv_fullscreen = (ImageView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_fullscreen"));
-        tv_steam = (TextView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_stream"));
-        tv_speed = (TextView) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_speed"));
-        seekBar = (SeekBar) activity.findViewById(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_seekBar"));
         seekBar.setMax(1000);
         seekBar.setOnSeekBarChangeListener(mSeekListener);
         iv_bar_player.setOnClickListener(onClickListener);
@@ -631,7 +676,7 @@ public class PlayerView {
         videoView.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(IMediaPlayer mp, int what, int extra) {
-                if (what == PlayStateParams.MEDIA_INFO_NETWORK_BANDWIDTH||what == PlayStateParams.MEDIA_INFO_BUFFERING_BYTES_UPDATE) {
+                if (what == PlayStateParams.MEDIA_INFO_NETWORK_BANDWIDTH || what == PlayStateParams.MEDIA_INFO_BUFFERING_BYTES_UPDATE) {
                     Log.e("dou361", "====extra=======" + extra);
                     if (tv_speed != null) {
                         tv_speed.setText(getFormatSize(extra));
@@ -666,11 +711,18 @@ public class PlayerView {
             }
         });
 
-        final GestureDetector gestureDetector = new GestureDetector(activity, new PlayerGestureListener());
+        final GestureDetector gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
         rl_box.setClickable(true);
         rl_box.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                        if (mAutoPlayRunnable != null) {
+                            mAutoPlayRunnable.stop();
+                        }
+                        break;
+                }
                 if (gestureDetector.onTouchEvent(motionEvent))
                     return true;
                 // 处理手势结束
@@ -684,7 +736,7 @@ public class PlayerView {
         });
 
 
-        orientationEventListener = new OrientationEventListener(activity) {
+        orientationEventListener = new OrientationEventListener(mActivity) {
             @Override
             public void onOrientationChanged(int orientation) {
                 if (orientation >= 0 && orientation <= 30 || orientation >= 330 || (orientation >= 150 && orientation <= 210)) {
@@ -702,7 +754,7 @@ public class PlayerView {
             }
         };
         if (isOnlyFullScreen) {
-            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
         isPortrait = (getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         initHeight = rl_box.getLayoutParams().height;
@@ -1109,7 +1161,14 @@ public class PlayerView {
      * 当前播放的是否是直播
      */
     public boolean isLive() {
-        isLive = currentUrl != null && currentUrl.startsWith("rtmp://") || currentUrl.endsWith(".m3u8");
+        if (currentUrl != null
+                && (currentUrl.startsWith("rtmp://")
+                || (currentUrl.startsWith("http://") && currentUrl.endsWith(".m3u8"))
+                || (currentUrl.startsWith("http://") && currentUrl.endsWith(".flv")))) {
+            isLive = true;
+        } else {
+            isLive = false;
+        }
         return isLive;
     }
 
@@ -1310,7 +1369,7 @@ public class PlayerView {
             }
             updatePausePlay();
             mHandler.sendEmptyMessage(MESSAGE_SHOW_PROGRESS);
-            mAutoPlayRunnable.start();
+//            mAutoPlayRunnable.start();
         } else {
             if (isHideTopBar) {
                 ll_topbar.setVisibility(View.GONE);
@@ -1338,7 +1397,7 @@ public class PlayerView {
             if (onControlPanelVisibilityChangeListener != null) {
                 onControlPanelVisibilityChangeListener.change(false);
             }
-            mAutoPlayRunnable.stop();
+//            mAutoPlayRunnable.stop();
         }
         return this;
     }
@@ -1597,22 +1656,6 @@ public class PlayerView {
         }
     }
 
-    /**
-     * 设置界面方向带隐藏actionbar
-     */
-    private void tryFullScreen(boolean fullScreen) {
-        if (mActivity instanceof AppCompatActivity) {
-            ActionBar supportActionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
-            if (supportActionBar != null) {
-                if (fullScreen) {
-                    supportActionBar.hide();
-                } else {
-                    supportActionBar.show();
-                }
-            }
-        }
-        setFullScreen(fullScreen);
-    }
 
     /**
      * 设置界面方向
@@ -1634,6 +1677,24 @@ public class PlayerView {
         }
 
     }
+
+    /**
+     * 设置界面方向带隐藏actionbar
+     */
+    private void tryFullScreen(boolean fullScreen) {
+        if (mActivity instanceof AppCompatActivity) {
+            ActionBar supportActionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
+            if (supportActionBar != null) {
+                if (fullScreen) {
+                    supportActionBar.hide();
+                } else {
+                    supportActionBar.show();
+                }
+            }
+        }
+        setFullScreen(fullScreen);
+    }
+
 
     /**
      * 隐藏状态界面
@@ -1695,6 +1756,9 @@ public class PlayerView {
         }
         mHandler.removeMessages(MESSAGE_HIDE_CENTER_BOX);
         mHandler.sendEmptyMessageDelayed(MESSAGE_HIDE_CENTER_BOX, 500);
+        if (mAutoPlayRunnable != null) {
+            mAutoPlayRunnable.start();
+        }
 
     }
 
@@ -1718,9 +1782,9 @@ public class PlayerView {
         query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_currentTime")).text(generateTime(position));
         query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_currentTime_full")).text(generateTime(position));
         query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_currentTime_left")).text(generateTime(position));
-        query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_endTime")).text(generateTime(this.duration));
-        query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_endTime_full")).text(generateTime(this.duration));
-        query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_endTime_left")).text(generateTime(this.duration));
+        query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_endTime")).text(generateTime(duration));
+        query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_endTime_full")).text(generateTime(duration));
+        query.id(ResourceUtils.getResourceIdByName(mContext, "id", "app_video_endTime_left")).text(generateTime(duration));
         return position;
     }
 
@@ -1910,10 +1974,9 @@ public class PlayerView {
         public void run() {
             if (mShouldAutoPlay) {
                 mHandler.removeCallbacks(this);
-                if (!isForbidTouch) {
+                if (!isForbidTouch && !isShowControlPanl) {
                     operatorPanl();
                 }
-                stop();
             }
         }
     }
@@ -1955,7 +2018,6 @@ public class PlayerView {
         public boolean onDown(MotionEvent e) {
             isDownTouch = true;
             return super.onDown(e);
-
         }
 
 
